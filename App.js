@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Button, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Button, TouchableOpacity, TextInput } from 'react-native';
 import Board from './components/Board';
 import Square from './components/Square';
 
@@ -8,16 +8,30 @@ export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      boardSize: 3,
       rows: Array(9).fill(null),
       xTurn: true,
       winner: null,
       winnerCombination: null,
+      winCombinations: [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+      ]
     }
 
     this.fillBoard = this.fillBoard.bind(this);
     this.playMove = this.playMove.bind(this);
     this.resetBoard = this.resetBoard.bind(this);
     this.winCondition = this.winCondition.bind(this);
+    this.inputOnChange = this.inputOnChange.bind(this);
+    this.reSizeBoard = this.reSizeBoard.bind(this);
+    this.changeWinCombinations = this.changeWinCombinations.bind(this);
   }
 
   fillBoard() {
@@ -25,6 +39,7 @@ export default class App extends React.Component {
       if (this.state.winnerCombination && this.state.winnerCombination.indexOf(i) !== -1) {
         return (
           <Square
+            size={100/Math.sqrt(this.state.rows.length)}
             content={sq}
             index={i}
             key={i}
@@ -36,6 +51,7 @@ export default class App extends React.Component {
       } else {
         return (
           <Square
+            size={100/Math.sqrt(this.state.rows.length)}
             content={sq}
             index={i}
             key={i}
@@ -65,25 +81,47 @@ export default class App extends React.Component {
   resetBoard() {
     this.setState({
       ...this.state,
-      rows: Array(9).fill(null),
+      rows: this.state.rows.fill(null),
       xTurn: true,
       winner: null,
       winnerCombination: null,
     })
   }
 
-  winCondition() {
-    const winCombinations = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6]
-    ]
-    winCombinations.forEach(combination => {
+  changeWinCombinations() {
+    const newCombinations = [];
+    // combinaciones horizontales
+    for (let i = 0; i<this.state.boardSize; i++) {
+      for (let j = 0; j<this.state.boardSize-2; j++) {
+        newCombinations.push([ i*this.state.boardSize+j , i*this.state.boardSize+1+j , i*this.state.boardSize+2+j ])
+      }
+    }
+    // combinaciones verticales
+    for (let i = 0; i<this.state.boardSize-2; i++) {
+      for (let j = 0; j<this.state.boardSize; j++) {
+        newCombinations.push([ i*this.state.boardSize+j , i*this.state.boardSize+1*this.state.boardSize+j , i*this.state.boardSize+2*this.state.boardSize+j ])
+      }
+    }
+    // combinaciones diagonales
+    for (let i = 0; i<this.state.boardSize; i++) {
+      for (let j = 0; j<this.state.boardSize-2; j++) {
+        newCombinations.push([ i*this.state.boardSize+j , i*this.state.boardSize+1+1*this.state.boardSize+j , i*this.state.boardSize+2+2*this.state.boardSize+j ])
+      }
+    }
+    for (let i = 0; i<this.state.boardSize-2; i++) {
+      for (let j = 2; j<this.state.boardSize; j++) {
+        newCombinations.push([ i*this.state.boardSize+j , i*this.state.boardSize-1+1*this.state.boardSize+j , i*this.state.boardSize-2+2*this.state.boardSize+j ])
+      }
+    }
+
+    this.setState({
+      ...this.state,
+      winCombinations: newCombinations,
+    })
+  }
+
+  winCondition() {    
+    this.state.winCombinations.forEach(combination => {
       if (this.state.rows[combination[0]] && this.state.rows[combination[0]] === this.state.rows[combination[1]] && this.state.rows[combination[1]] === this.state.rows[combination[2]]) {
         this.setState({
           ...this.state,
@@ -101,6 +139,20 @@ export default class App extends React.Component {
     }
   }
 
+  inputOnChange(text) {
+    this.setState({
+      ...this.state,
+      boardSize: Number(text),
+    })
+  }
+
+  reSizeBoard() {
+    this.setState({
+      ...this.state,
+      rows: Array(this.state.boardSize*this.state.boardSize).fill(null),
+    }, this.changeWinCombinations)
+  }
+
   render() {
     return (
       <View style={styles.container}>
@@ -109,9 +161,13 @@ export default class App extends React.Component {
           fillBoard={this.fillBoard}
         />
         <Button
+          style={styles.reiniciarButton}
           onPress={this.resetBoard}
           title="Reiniciar"
         />
+        <View>
+          <Text style={{marginTop: 30, marginBottom: 10, fontSize: 20}}>Filas y Columnas del Tablero: </Text><TextInput style={styles.input} onChangeText={(text) => this.inputOnChange(text)}value={this.state.boardSize.toString()}></TextInput><Button onPress={this.reSizeBoard} title="Cambiar Tamaño"></Button>
+        </View>
         {this.state.winner &&
           <View style={styles.winnerContainer}>
             <Text style={styles.winnerText}>{this.state.winner === "X" || this.state.winner === "O" ? "Ganó: " + this.state.winner : this.state.winner}</Text>
@@ -171,5 +227,11 @@ const styles = StyleSheet.create({
   playAgainText: {
     fontSize: 20,
     textAlign: "center"
+  },
+  input: {
+    textAlign: "center",
+    fontSize: 20,
+    marginBottom: 20,
+    color: "red",
   }
 });

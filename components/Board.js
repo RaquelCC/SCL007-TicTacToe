@@ -13,8 +13,8 @@ const styles = StyleSheet.create({
     boardContainer: {
         display: "flex",
         margin: "auto",
-        width: "70%",
-        height: Dimensions.get('window').width * 0.7,
+        width: "100%",
+        height: Dimensions.get('window').width,
         backgroundColor: "black",
         flexDirection: "row",
         flexWrap: "wrap",
