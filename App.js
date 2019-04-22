@@ -88,7 +88,8 @@ export default class App extends React.Component {
     })
   }
 
-  changeWinCombinations() {
+  // para lineas de a 3
+  changeWinCombinations1() {
     const newCombinations = [];
     // combinaciones horizontales
     for (let i = 0; i<this.state.boardSize; i++) {
@@ -120,16 +121,68 @@ export default class App extends React.Component {
     })
   }
 
+  // para lieneas de largo del tamaño del tablero
+  changeWinCombinations() {
+    const newCombinations = [];
+    // combinaciones horizontales
+    for (let i = 0; i<this.state.boardSize; i++) {
+      const newComb = [];
+      for (let j = 0; j<this.state.boardSize; j++) {
+        newComb.push(j+i*this.state.boardSize)
+      }
+      newCombinations.push(newComb)
+    }
+    // combinaciones verticales
+    for (let i = 0; i<this.state.boardSize; i++) {
+      const newComb = [];
+      for (let j = 0; j<this.state.boardSize; j++) {
+        newComb.push(i+j*this.state.boardSize)
+      }
+      newCombinations.push(newComb)
+    }
+    // combinaciones diagonales
+    for (let i = 0; i<this.state.boardSize; i++) {
+      const newComb = [];
+      for (let j = 0; j<this.state.boardSize; j++) {
+        newComb.push(j+j*this.state.boardSize)
+      }
+      newCombinations.push(newComb)
+    }
+    for (let i = 0; i<this.state.boardSize-2; i++) {
+      const newComb = [];
+      for (let j = 1; j<this.state.boardSize+1; j++) {
+        newComb.push(j*this.state.boardSize-j)
+      }
+      newCombinations.push(newComb)
+    }
+
+    this.setState({
+      ...this.state,
+      winCombinations: newCombinations,
+    })
+  }
+
   winCondition() {    
     this.state.winCombinations.forEach(combination => {
-      if (this.state.rows[combination[0]] && this.state.rows[combination[0]] === this.state.rows[combination[1]] && this.state.rows[combination[1]] === this.state.rows[combination[2]]) {
+      // if (this.state.rows[combination[0]] && this.state.rows[combination[0]] === this.state.rows[combination[1]] && this.state.rows[combination[1]] === this.state.rows[combination[2]]) {
+      //   this.setState({
+      //     ...this.state,
+      //     winner: this.state.rows[combination[0]],
+      //     winnerCombination: combination,
+      //   })
+      //   return
+      // }
+      const reduced = combination.reduce((acc,current) => {
+        return (this.state.rows[current] === acc ? acc : false)
+      }, this.state.xTurn ? "O" : "X")
+      if (reduced) {
         this.setState({
           ...this.state,
-          winner: this.state.rows[combination[0]],
+          winner: reduced,
           winnerCombination: combination,
         })
-        return
       }
+      return
     })
     if (this.state.rows.indexOf(null) === -1) {
       this.setState({
